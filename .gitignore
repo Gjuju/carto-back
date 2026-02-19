@@ -1,0 +1,28 @@
+# Compiled output
+build
+dist
+tmp
+
+# Node
+node_modules
+package-lock.json
+
+# Environment
+.env
+!.env.example
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+
+# System
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# Claude
+CLAUDE.local.md
