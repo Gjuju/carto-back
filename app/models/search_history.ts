@@ -13,8 +13,11 @@ export default class SearchHistory extends BaseModel {
   @column()
   declare query: string
 
+  /**
+   * @enum(geocoding, parcelle, gpu)
+   */
   @column()
-  declare type: 'geocoding' | 'parcelle' | 'gpu'
+  declare type: string
 
   @column()
   declare resultCount: number
@@ -23,7 +26,7 @@ export default class SearchHistory extends BaseModel {
     prepare: (value: any) => (value ? JSON.stringify(value) : null),
     consume: (value: string | null) => (value && typeof value === 'string' ? JSON.parse(value) : value),
   })
-  declare metadata: Record<string, any> | null
+  declare metadata: any
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

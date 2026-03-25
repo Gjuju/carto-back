@@ -18,7 +18,7 @@
   },
   "scripts": {
     "start": "node bin/server.js",
-    "dev": "node ace serve --hmr",
+    "dev": "node ace serve --watch",
     "build": "node ace build",
     "test": "node ace test",
     "lint": "eslint .",
@@ -28,9 +28,12 @@
     "@adonisjs/auth": "^9.4.0",
     "@adonisjs/core": "^6.18.0",
     "@adonisjs/cors": "^2.2.1",
+    "@adonisjs/limiter": "^2.4.0",
     "@adonisjs/lucid": "^21.6.1",
+    "@adonisjs/mail": "^9.2.2",
     "@types/luxon": "^3.7.1",
     "@vinejs/vine": "^3.0.1",
+    "adonis-autoswagger": "^3.73.0",
     "better-sqlite3": "^11.0.0",
     "luxon": "^3.7.2",
     "reflect-metadata": "^0.2.2"

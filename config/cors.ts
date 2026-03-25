@@ -6,8 +6,10 @@ export default defineConfig({
     const allowedOrigins = [
       'http://localhost:4200',
       'http://localhost:3333',
+      'http://localhost:8100',
       'capacitor://localhost',
       'http://localhost',
+      'https://localhost',
     ]
     return allowedOrigins.includes(requestOrigin)
   },
