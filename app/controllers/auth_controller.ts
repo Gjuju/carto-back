@@ -14,6 +14,11 @@ import {
   resetPasswordValidator,
   changePasswordValidator,
 } from '#validators/auth_validator'
+import {
+  renderResetPasswordForm,
+  renderResetPasswordSuccess,
+  renderResetPasswordInvalid,
+} from '#services/reset_password_views'
 
 export default class AuthController {
   /**
@@ -107,8 +112,7 @@ export default class AuthController {
         expiresAt: DateTime.now().plus({ hours: 1 }),
       })
 
-      const frontendUrl = env.get('APP_FRONTEND_URL', 'http://localhost:4200')
-      const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`
+      const resetUrl = `${env.get('APP_URL')}/auth/reset-password?token=${rawToken}`
 
       if (env.get('BREVO_API_KEY')) {
         try {
@@ -141,17 +145,20 @@ export default class AuthController {
   }
 
   /**
-   * @resetPassword
-   * @summary Réinitialiser le mot de passe avec un token
-   * @requestBody <resetPasswordValidator>
-   * @responseBody 200 - {"message": "Password has been reset."}
-   * @responseBody 400 - Invalid or expired token
+   * @showResetPasswordPage
+   * @summary Afficher le formulaire HTML de réinitialisation de mot de passe
+   * @paramQuery token - Token de réinitialisation reçu par email - @type(string) @required
+   * @responseBody 200 - HTML form
    */
-  async resetPassword({ request, response }: HttpContext) {
-    const { token, password } = await request.validateUsing(resetPasswordValidator)
+  async showResetPasswordPage({ request, response }: HttpContext) {
+    const token = request.input('token', '')
+    response.header('Content-Type', 'text/html; charset=utf-8')
+
+    if (!token || typeof token !== 'string' || token.length < 10) {
+      return response.status(400).send(renderResetPasswordInvalid())
+    }
 
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
-
     const resetToken = await PasswordResetToken.query()
       .where('token_hash', tokenHash)
       .whereNull('used_at')
@@ -159,21 +166,55 @@ export default class AuthController {
       .first()
 
     if (!resetToken) {
-      return response.badRequest({ message: 'Invalid or expired token.' })
+      return response.status(400).send(renderResetPasswordInvalid())
+    }
+
+    return response.ok(renderResetPasswordForm({ token }))
+  }
+
+  /**
+   * @submitResetPasswordForm
+   * @summary Traiter la soumission du formulaire HTML de réinitialisation
+   * @responseBody 200 - HTML confirmation
+   */
+  async submitResetPasswordForm({ request, response }: HttpContext) {
+    response.header('Content-Type', 'text/html; charset=utf-8')
+
+    let payload: { token: string; password: string }
+    try {
+      payload = await request.validateUsing(resetPasswordValidator)
+    } catch {
+      const token = request.input('token', '')
+      return response.status(400).send(
+        renderResetPasswordForm({
+          token: typeof token === 'string' ? token : '',
+          error: 'Les mots de passe doivent contenir au moins 8 caractères et être identiques.',
+        })
+      )
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(payload.token).digest('hex')
+    const resetToken = await PasswordResetToken.query()
+      .where('token_hash', tokenHash)
+      .whereNull('used_at')
+      .where('expires_at', '>', DateTime.now().toSQL()!)
+      .first()
+
+    if (!resetToken) {
+      return response.status(400).send(renderResetPasswordInvalid())
     }
 
     const user = await User.findOrFail(resetToken.userId)
-    user.password = password
+    user.password = payload.password
     await user.save()
 
     resetToken.usedAt = DateTime.now()
     await resetToken.save()
 
-    await User.accessTokens.all(user).then((tokens) =>
-      Promise.all(tokens.map((t) => User.accessTokens.delete(user, t.identifier)))
-    )
+    const tokens = await User.accessTokens.all(user)
+    await Promise.all(tokens.map((t) => User.accessTokens.delete(user, t.identifier)))
 
-    return response.ok({ message: 'Password has been reset.' })
+    return response.ok(renderResetPasswordSuccess())
   }
 
   /**

@@ -63,8 +63,12 @@ router.group(() => {
   router
     .post('/forgot-password', [AuthController, 'forgotPassword'])
     .use(forgotPasswordThrottle)
-  router.post('/reset-password', [AuthController, 'resetPassword'])
 }).prefix('/api/auth')
+
+// Web routes (HTML) — page de réinitialisation de mot de passe servie
+// directement par Adonis (liée depuis l'email Brevo).
+router.get('/auth/reset-password', [AuthController, 'showResetPasswordPage'])
+router.post('/auth/reset-password', [AuthController, 'submitResetPasswordForm'])
 
 // Authenticated routes
 router.group(() => {

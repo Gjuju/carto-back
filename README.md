@@ -68,7 +68,7 @@ La documentation Swagger UI est sur <http://localhost:3333/docs> (uniquement hor
 Le flow "mot de passe oublié" envoie un email contenant un lien de reset.
 
 - **En dev** : laisser `BREVO_API_KEY` vide dans le `.env`. Le token de reset sera affiché dans les logs de la console au lieu d'être envoyé par email.
-- **En prod** : renseigner `BREVO_API_KEY`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` et `APP_FRONTEND_URL` pour que l'email contienne un lien pointant vers le frontend.
+- **En prod** : renseigner `BREVO_API_KEY`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` et `APP_URL` (URL publique du backend) pour que l'email contienne un lien valide vers la page de reset servie par Adonis.
 
 ## Commandes utiles
 
@@ -101,7 +101,7 @@ LIMITER_STORE=database
 BREVO_API_KEY=<clé-api-brevo>
 MAIL_FROM_ADDRESS=noreply@votre-domaine.fr
 MAIL_FROM_NAME=Carto
-APP_FRONTEND_URL=https://votre-frontend.fr
+APP_URL=https://api.votre-domaine.fr
 ```
 
 ⚠️ **Générer une `APP_KEY` dédiée à la prod** via `node ace generate:key` — ne jamais réutiliser celle de dev.
